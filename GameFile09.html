@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Super Redball</title>
+</head>
+<body>
+
+<canvas id="redball_canvas" width="1200" height="600" style="border:1px solid #000;"></canvas>
+
+<script>
+
+//Setup miscellaneous game variables :
+
+var game_speed = 1;
+
+var score = 0;
+
+var red_b;
+var red_p;
+
+var block_array = [];
+
+//Setup the game canvas.
+
+canvas = document.getElementById("redball_canvas"); 
+ctx = canvas.getContext("2d");
+
+//Setup the red ball object :
+
+function red_ball() {
+	this.x_loc 		= 0,
+	this.y_loc 		= 0,
+	
+	this.ball_horz_dir	= 1, //1 = right, -1 = left. This can also function as the ball horiz speed.
+	this.ball_vert_dir   	= 1, //1 = up, -1 = down. This can also function as the ball vert speed.
+
+	this.ball_radius	= 10,
+
+	this.draw_ball = function() { 
+
+		ctx.beginPath();
+		ctx.arc(this.x_loc, this.y_loc, this.ball_radius, deg_to_radian(0), deg_to_radian(360));
+
+		ctx.strokeStyle="#FF0000";
+
+	     	ctx.fillStyle = 'red';
+	      	ctx.fill();
+		ctx.stroke();
+
+		ctx.closePath();
+	
+	}, //End of method.
+
+	this.move_ball = function() {
+
+		this.x_loc += this.ball_horz_dir;
+		this.y_loc += this.ball_vert_dir;
+
+		this.draw_ball();
+
+	} //End of method.
+
+} //End of object
+
+//-----------------------------------------------------------------------------------------
+
+function paddle() {
+	this.x_loc 		= canvas.width/2,
+	this.y_loc 		= 500,
+	this.number_of_lives 	= 3,
+
+	this.paddle_width 	= 100,
+	this.paddle_height 	= 20,
+
+	this.draw_paddle = function() {
+
+		ctx.fillStyle = 'red';
+		ctx.fillRect(this.x_loc, this.y_loc, this.paddle_width, this.paddle_height);
+
+	}, //End of draw_paddle method.
+
+	this.move_paddle = function (paddle_x_loc, paddle_y_loc) {
+
+		this.x_loc = paddle_x_loc;
+		this.y_loc = paddle_y_loc;
+
+		this.draw_paddle();	
+
+	} //End of move_paddle method.
+
+
+} //End of object.
+
+//-----------------------------------------------------------------------------------------
+
+function block() {
+
+	this.x_loc 		= 20,
+	this.y_loc 		= 0,
+
+	this.block_width 	= 100,
+	this.block_height 	= 20,
+
+	this.is_destroyed	= false,
+
+	this.point_value	= 100,
+
+	this.block_color	= 'green',
+
+	this.draw_block = function() {
+
+		ctx.fillStyle = this.block_color;
+		ctx.fillRect(this.x_loc, this.y_loc, this.block_width, this.block_height);
+
+	} //End of draw_paddle method.	
+	
+
+} //End of object.
+
+//-----------------------------------------------------------------------------------------
+
+
+//Convert the degrees to radians	
+function deg_to_radian(deg) { return deg*(Math.PI/180); }
+
+//Refresh the canvas
+function clear_canvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+
+//==========================================================================================
+
+function detect_collision() {
+
+	//Check to see if it hit any walls.
+
+	if (red_b.x_loc >= canvas.width) { red_b.ball_horz_dir *= -1; }
+
+	if (red_b.x_loc <= 0) { red_b.ball_horz_dir *= -1; }
+
+	//Missed ball. Looses a life.
+	if (red_b.y_loc >= canvas.height) { 
+
+		window.alert("ROCK BOTTOM!! YOU LOST A LIFE!!");  
+		repair_and_replace(); 
+
+	} //End of condition statement.
+
+	if (red_b.y_loc <= 0) { red_b.ball_vert_dir *= -1; }
+
+	//Did the paddle hit the ball ??
+
+	if (red_b.x_loc >= red_p.x_loc && red_b.x_loc < (red_p.x_loc+red_p.paddle_width) &&
+	    red_b.y_loc >= red_p.y_loc) { red_b.ball_vert_dir *= -1; }
+
+
+
+	
+
+	//Were any of the block hit ??
+
+	for (block_count = 0; block_count < block_array.length; block_count++) {
+
+		//Did it hit the top or bottom of the block.
+	
+		if (red_b.x_loc >= block_array[block_count].x_loc &&
+
+		    red_b.x_loc <= block_array[block_count].x_loc+block_array[block_count].block_width &&
+
+		    red_b.y_loc == block_array[block_count].y_loc) 
+
+			{ red_b.ball_vert_dir *= -1; block_array[block_count].is_destroyed = true; }
+
+
+		if (red_b.x_loc >= block_array[block_count].x_loc &&
+
+		    red_b.x_loc <= block_array[block_count].x_loc+block_array[block_count].block_width &&
+
+		    red_b.y_loc == block_array[block_count].y_loc+block_array[block_count].block_height) 
+
+			{ red_b.ball_vert_dir *= -1; block_array[block_count].is_destroyed = true; }
+
+
+		//Did it hit the left or right side of the block
+
+	
+		if (red_b.y_loc >= block_array[block_count].y_loc &&
+
+		    red_b.y_loc <= block_array[block_count].y_loc+block_array[block_count].block_height &&
+
+		    red_b.x_loc == block_array[block_count].x_loc) 
+
+			{ red_b.ball_horz_dir *= -1; block_array[block_count].is_destroyed = true; }
+
+
+		if (red_b.y_loc >= block_array[block_count].y_loc &&
+
+		    red_b.y_loc <= block_array[block_count].y_loc+block_array[block_count].block_height &&
+
+		    red_b.x_loc == block_array[block_count].x_loc+block_array[block_count].block_width) 		
+			{ red_b.ball_horz_dir *= -1; block_array[block_count].is_destroyed = true; }
+
+
+		if (block_array[block_count].is_destroyed) score += block_array[block_count].point_value;
+
+
+	} //End of loop.
+
+} //End of collision detection function.
+
+//==========================================================================================
+
+function check_and_move_paddle(evnt) {
+
+	if (evnt.keyCode == 37) red_p.x_loc -= 20;
+
+	if (evnt.keyCode == 39) red_p.x_loc += 20;
+
+	red_p.move_paddle(red_p.x_loc, red_p.y_loc);	
+
+} //End of function check_and_move_paddle
+
+//==========================================================================================
+
+function draw_blocks() {
+
+	for (block_count = 0; block_count < block_array.length; block_count++) {
+
+		//Erase the block(s) that the ball hit.
+
+		if (block_array[block_count].is_destroyed) { block_array.splice(block_count, 1); }
+
+		//Draw the rest.
+
+		else block_array[block_count].draw_block();
+
+	} //End of loop.
+
+} //End of function.
+
+//==========================================================================================
+
+function repair_and_replace() {
+
+	red_p.number_of_lives--;
+
+	//If the number of lives reach 0, the wait for user to click OK.  Afterwards,
+        // redraw the wall, set the score back to 0 and reset the number of lives to 3.
+
+	if (red_p.number_of_lives == 0) { 
+
+		window.alert("GAME OVER!! Click to reset."); 
+		red_p.number_of_lives = 3; 
+		score = 0;
+		draw_wall();
+
+	} //End of if.
+
+	red_b.y_loc = 500; red_b.ball_vert_dir = -1; 
+
+
+} //End of function repair_and_replace();
+
+//==========================================================================================
+
+function draw_wall() {
+
+	var location_counter = 0;
+
+	//Draw row 1 :
+
+	for (block_count = 0; block_count < 10; block_count++) {
+
+		block_array[block_count] = new block();
+		block_array[block_count].block_color = 'black';
+		block_array[block_count].point_value = 500;
+
+		block_array[block_count].x_loc = 40+(location_counter*110);
+		block_array[block_count].y_loc = 100;
+
+		location_counter++;
+
+	} //End of for loop.
+
+	//Draw row 2 :
+
+		location_counter = 0;
+
+	for (block_count = 10; block_count < 20; block_count++) {
+
+		block_array[block_count] = new block();
+		block_array[block_count].block_color = 'blue';
+		block_array[block_count].point_value = 400;
+
+		block_array[block_count].x_loc = 40+(location_counter*110);
+		block_array[block_count].y_loc = 120;
+
+		location_counter++;
+
+	} //End of for loop.
+
+	//Draw row 3 :
+
+		location_counter = 0;
+
+	for (block_count = 20; block_count < 30; block_count++) {
+
+		block_array[block_count] = new block();
+		block_array[block_count].block_color = 'green';
+		block_array[block_count].point_value = 300;
+
+		block_array[block_count].x_loc = 40+(location_counter*110);
+		block_array[block_count].y_loc = 140;
+
+		location_counter++;
+
+	} //End of for loop.
+
+	//Draw row 4 :
+
+		location_counter = 0;
+
+	for (block_count = 30; block_count < 40; block_count++) {
+
+		block_array[block_count] = new block();
+		block_array[block_count].block_color = 'orange';
+		block_array[block_count].point_value = 200;
+
+		block_array[block_count].x_loc = 40+(location_counter*110);
+		block_array[block_count].y_loc = 160;
+
+		location_counter++;
+
+	} //End of for loop.
+
+	//Draw row 5 :
+
+		location_counter = 0;
+
+	for (block_count = 40; block_count < 50; block_count++) {
+
+		block_array[block_count] = new block();
+		block_array[block_count].block_color = 'yellow';
+		block_array[block_count].point_value = 400;
+
+		block_array[block_count].x_loc = 40+(location_counter*110);
+		block_array[block_count].y_loc = 180;
+
+		location_counter++;
+
+	} //End of for loop.
+
+} //End of draw_wall;
+
+//==========================================================================================
+
+
+function init() { 
+
+	red_b = new red_ball();
+	red_p = new paddle();
+
+	//Shoot redball from this location and shoot it up :
+
+	red_b.y_loc = 500; red_b.ball_vert_dir = -1;
+
+	//Make the wall :
+
+	draw_wall();
+
+
+	document.addEventListener('keydown', check_and_move_paddle, false);
+	
+	setInterval(game_loop, game_speed); 
+
+} //End of init function.
+
+function game_loop() {
+
+	clear_canvas();
+
+	red_b.move_ball();
+
+	red_p.draw_paddle();
+
+	draw_blocks();
+
+	show_score();
+
+	show_life_counter();
+
+	detect_collision();
+
+} //End of game_loop function.
+
+//Display status :
+
+function show_score() {
+
+	ctx.fillStyle = "black";
+	ctx.font="40px Arial";
+	ctx.fillText(score, canvas.width/2, 50);
+
+} //End of function show_score.
+
+function show_life_counter() {
+
+	ctx.fillStyle = "black";
+	ctx.font="40px Arial";
+	ctx.fillText("X "+red_p.number_of_lives, 80, 50);
+
+	ctx.fillStyle = "red";
+	ctx.fillRect(20, 30, 40, 10);
+
+} //End of show_life_counter
+
+
+
+//START IT UP !!
+
+window.onload = init;
+
+</script>
+</body>
+</html>
+

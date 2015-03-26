@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Super Redball</title>
+</head>
+<body>
+
+<canvas id="redball_canvas" width="1200" height="600" style="border:1px solid #000;"></canvas>
+
+<script>
+
+//Setup the game canvas.
+
+canvas = document.getElementById("redball_canvas"); 
+ctx = canvas.getContext("2d");
+
+//Setup the red ball object :
+
+function red_ball() {
+	this.x_loc		= 0,
+	this.y_loc 		= 0,
+	this.number_of_lives 	= 3,
+	
+	this.ball_horz_dir	= 1, //1 = right, -1 = left. This can also function as the ball horiz speed.
+	this.ball_vert_dir   	= 1, //1 = up, -1 = down. This can also function as the ball vert speed.
+
+	this.ball_radius	= 20,
+
+	this.draw_ball = function() { 
+
+		ctx.beginPath();
+		ctx.arc(this.x_loc, this.y_loc, this.ball_radius, degToRadian(0), degToRadian(360));
+
+		ctx.strokeStyle="#FF0000";
+
+	     	ctx.fillStyle = 'red';
+	      	ctx.fill();
+		ctx.stroke();
+
+		ctx.closePath();
+	
+	} //End of method.
+
+
+} //End of object
+
+//-----------------------------------------------------------------------------------------
+
+//Convert the degrees to radians	
+function degToRadian(deg) { return deg*(Math.PI/180); }
+
+//==========================================================================================
+
+r_b = new red_ball();
+
+r_b.x_loc = 100; r_b.y_loc = 100;
+r_b.draw_ball();
+
+
+</script>
+
+</body>
+
+</html>
+

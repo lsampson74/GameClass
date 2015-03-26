@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Super Redball</title>
+</head>
+<body>
+
+<canvas id="redball_canvas" width="1200" height="600" style="border:1px solid #000;"></canvas>
+
+<script>
+
+	//Set up canvas instance. 
+	var canvas = document.getElementById("redball_canvas"); 
+	var ctx = canvas.getContext("2d");
+
+	//Draw a "Have a nice day" face
+	ctx.beginPath();
+	ctx.arc(550,300,200,degToRadian(0),degToRadian(360));
+
+     	ctx.fillStyle = 'yellow';
+      	ctx.fill();
+	ctx.stroke();
+
+	//Make the smile.
+	ctx.beginPath();
+	ctx.arc(550,250,150,degToRadian(45),degToRadian(135));
+	ctx.stroke();
+
+	//Make the eyes.
+	ctx.beginPath();
+	ctx.arc(450, 250, 25, degToRadian(0), degToRadian(360)); 
+        
+	ctx.fillStyle = 'black';
+	ctx.fill();
+	ctx.stroke();
+
+	ctx.beginPath();
+	ctx.arc(650, 250, 25, degToRadian(0), degToRadian(360));
+
+	ctx.fillStyle = 'black';
+	ctx.fill();
+
+	ctx.stroke();
+
+	
+//Convert the degrees to radians	
+function degToRadian(deg) { return deg*(Math.PI/180); }
+
+</script>
+</body>
+</html>
